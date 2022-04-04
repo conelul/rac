@@ -4,7 +4,7 @@ A simple MAC address utility written in Rust.
 
 ## Notes
 
-Only works on linux right now! (may change in the future)
+**Only works on linux right now! (may change in the future)**
 
 ## Usage
 
