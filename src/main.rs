@@ -109,6 +109,17 @@ impl std::str::FromStr for MacAddr {
 	}
 }
 
+/// Check if a wireless interface exists (given the name)
+fn inter_exists(inter: &str) -> io::Result<bool> {
+	let ifiter = getifaddrs()?;
+	for interface in ifiter {
+		if interface.interface_name == inter {
+			return Ok(true);
+		}
+	}
+	Ok(false)
+}
+
 /// Get current network info (interface, address)
 fn get_info(name: Option<&str>) -> io::Result<Option<(String, MacAddr)>> {
 	let ifiter = getifaddrs()?;
@@ -145,7 +156,7 @@ fn new_addr() -> MacAddr {
 	addr
 }
 
-// Set MAC address, given an interface name and a MAC address
+/// Set MAC address, given an interface name and a MAC address
 fn set_addr(inter: &str, addr: MacAddr) -> io::Result<()> {
 	// sudo ip link set [interface] down
 	Command::new("sudo")
@@ -167,17 +178,6 @@ fn set_addr(inter: &str, addr: MacAddr) -> io::Result<()> {
 	Ok(())
 }
 
-/// Check if a wireless interface exists (given the name)
-fn inter_exists(inter: &str) -> io::Result<bool> {
-	let ifiter = getifaddrs()?;
-	for interface in ifiter {
-		if interface.interface_name == inter {
-			return Ok(true);
-		}
-	}
-	Ok(false)
-}
-
 fn main() -> io::Result<()> {
 	let args = Args::parse();
 	// Print current MAC
@@ -189,7 +189,7 @@ fn main() -> io::Result<()> {
 			println!(
 				"Your current MAC address ({}): {}",
 				current_inter,
-				format!("{}", addr).green().bold()
+				addr.to_string().green().bold()
 			);
 			return Ok(());
 		} else {
@@ -199,7 +199,7 @@ fn main() -> io::Result<()> {
 	// Generate a random MAC address
 	else if args.random {
 		let addr = new_addr();
-		println!("Random MAC address: {}", format!("{}", addr).green().bold());
+		println!("Random MAC address: {}", addr.to_string().green().bold());
 	}
 	// Set MAC
 	else if let Some(SubCmds::Set {
@@ -215,7 +215,7 @@ fn main() -> io::Result<()> {
 		// Generate and set a random MAC
 		else if random {
 			// Notify the user than -r takes precedence over -i
-			if let Some(_) = address {
+			if address.is_some() {
 				println!(
 					"{}",
 					"Using a random MAC address even though the '--address' flag was specified"
@@ -282,7 +282,7 @@ fn main() -> io::Result<()> {
 				}
 			}
 		}
-	}else {
+	} else {
 		unreachable!("You shouldn't be here");
 	}
 	Ok(())
